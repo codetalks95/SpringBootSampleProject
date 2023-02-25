@@ -12,5 +12,4 @@ public class SpringBootProjectCrudProjectApplication {
     public static void main(String[] args) {
         SpringApplication.run(SpringBootProjectCrudProjectApplication.class, args);
     }
-
 }

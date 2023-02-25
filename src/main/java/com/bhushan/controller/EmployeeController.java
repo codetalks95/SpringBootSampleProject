@@ -11,17 +11,20 @@ import java.util.Map;
 @RestController
 public class EmployeeController {
 
+    private final EmployeeService employeeService;
+
     @Autowired
-    private EmployeeService employeeService;
+    public EmployeeController(EmployeeService employeeService) {
+        this.employeeService = employeeService;
+    }
 
     @PostMapping("saveData")
-    public EmployeeResponse save(@RequestBody EmployeeEntity employeeEntity) {
+    public EmployeeResponse saveData(@RequestBody EmployeeEntity employeeEntity) {
         return employeeService.saveEmployee(employeeEntity);
     }
 
     @PatchMapping("partialUpdate/{id}")
     public EmployeeResponse updatePatchData(@PathVariable Integer id, @RequestBody Map<String, Object> employeeEntity) {
         return employeeService.patchUpdate(id, employeeEntity);
-
     }
 }

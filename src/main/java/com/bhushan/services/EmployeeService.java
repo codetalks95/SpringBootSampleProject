@@ -6,19 +6,24 @@ import com.bhushan.response.EmployeeResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
-
 import java.lang.reflect.Field;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class EmployeeService {
 
+    private final EmployeeRepository employeeRepository;
+
     @Autowired
-    private EmployeeRepository employeeRepository;
+    public EmployeeService(EmployeeRepository employeeRepository) {
+        this.employeeRepository = employeeRepository;
+    }
 
     public EmployeeResponse saveEmployee(EmployeeEntity employeeEntity) {
         EmployeeResponse employeeResponse = new EmployeeResponse();
+        employeeEntity.setEmployedDate(String.valueOf(new Date()));
         EmployeeEntity employeeEntity1 = employeeRepository.save(employeeEntity);
         employeeResponse.setStatus(200);
         employeeResponse.setMessage("Employee Saved Successfully");
