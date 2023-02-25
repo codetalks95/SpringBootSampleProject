@@ -17,7 +17,6 @@ public class EmployeeService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-
     public EmployeeResponse saveEmployee(EmployeeEntity employeeEntity) {
         EmployeeResponse employeeResponse = new EmployeeResponse();
         EmployeeEntity employeeEntity1 = employeeRepository.save(employeeEntity);
@@ -30,15 +29,21 @@ public class EmployeeService {
     public EmployeeResponse patchUpdate(Integer id, Map<String, Object> employeeEntity) {
         EmployeeResponse employeeResponse = new EmployeeResponse();
         Optional<EmployeeEntity> employeeEntity1 = employeeRepository.findById(id);
-        employeeEntity1.ifPresent(entity -> employeeEntity.forEach((key, value) -> {
-            Field field = ReflectionUtils.findField(EmployeeEntity.class, key);
-            field.setAccessible(true);
-            ReflectionUtils.setField(field, entity, value);
+        if (employeeEntity1.isPresent()) {
+            employeeEntity1.ifPresent(entity -> employeeEntity.forEach((key, value) -> {
+                Field field = ReflectionUtils.findField(EmployeeEntity.class, key);
+                field.setAccessible(true);
+                ReflectionUtils.setField(field, entity, value);
 
-        }));
-        employeeResponse.setStatus(200);
-        employeeResponse.setMessage("Employee Saved Successfully");
-        employeeResponse.setEmployeeEntity(employeeEntity1.get());
+            }));
+            employeeResponse.setStatus(200);
+            employeeResponse.setMessage("Employee Saved Successfully");
+            employeeResponse.setEmployeeEntity(employeeEntity1.get());
+            return employeeResponse;
+        }
+        employeeResponse.setStatus(500);
+        employeeResponse.setMessage("Something Went Wrong");
+        employeeResponse.setEmployeeEntity(null);
         return employeeResponse;
     }
 }
