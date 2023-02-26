@@ -9,11 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class LoginService {
@@ -27,17 +23,20 @@ public class LoginService {
 
     public LoginResponse login(LoginEntity loginEntity) {
         LoginResponse loginResponse = new LoginResponse();
-        loginEntity.setUserName(loginEntity.getUserName());
-        loginEntity.setPassword(loginEntity.getPassword());
-        loginEntity.setPasswordGenerationDate(System.currentTimeMillis());
-        if (checkDateExpiry(System.currentTimeMillis())) {
+        List<LoginEntity> loginEntities = loginRepository.uniqueUserName(loginEntity.getUserName());
+        if (checkUserNameExist(loginEntities, loginEntity.getUserName())) {
+            loginEntity.setUserName(loginEntity.getUserName());
+            loginEntity.setPassword(loginEntity.getPassword());
+            loginEntity.setPasswordGenerationDate(System.currentTimeMillis());
             LoginEntity loginEntity1 = loginRepository.save(loginEntity);
             loginResponse.setObject(loginEntity1);
             loginResponse.setStatus("200");
             loginResponse.setMessage("The Login Credentials has been Generated");
+            loginResponse.setObject(loginEntity);
         } else {
             loginResponse.setStatus("500");
-            loginResponse.setMessage("The Login Credentials has been not been generated");
+            loginResponse.setMessage("UserName already exists");
+            loginResponse.setObject(null);
         }
         return loginResponse;
     }
@@ -45,7 +44,7 @@ public class LoginService {
     public LoginResponse changePassword(Integer id, Map<String, Object> map) {
         LoginResponse loginResponse = new LoginResponse();
         Optional<LoginEntity> loginEntity = loginRepository.findById(id);
-        if (loginEntity.isPresent() && checkDateExpiry(System.currentTimeMillis())) {
+        if (loginEntity.isPresent() && checkPasswordExpiry(System.currentTimeMillis())) {
             map.forEach((key, value) -> {
                 Field field = ReflectionUtils.findField(LoginEntity.class, key);
                 field.setAccessible(true);
@@ -61,17 +60,12 @@ public class LoginService {
         return loginResponse;
     }
 
-    public LoginResponse expirePassword(LoginEntity loginEntity) {
-        LoginResponse loginResponse = new LoginResponse();
-        if (checkDateExpiry(loginEntity.getPasswordGenerationDate())) {
-            loginResponse.setMessage("The Login has Expired");
-            loginResponse.setStatus("500");
-        }
-        return loginResponse;
-    }
-
-    public static boolean checkDateExpiry(Long existingDate) {
+    public static boolean checkPasswordExpiry(Long existingDate) {
         long epochCurrentTime = System.currentTimeMillis() + 24 * 60 * 60 * 1000;
         return epochCurrentTime > existingDate;
+    }
+
+    public boolean checkUserNameExist(List<LoginEntity> loginEntity, String userName) {
+        return loginEntity.stream().findFirst().map(login -> !login.getUserName().equals(userName)).orElse(true);
     }
 }
